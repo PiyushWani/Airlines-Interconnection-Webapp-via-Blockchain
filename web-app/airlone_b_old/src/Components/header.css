@@ -1,0 +1,24 @@
+.header{
+	display: flex;
+	flex-direction: row;
+	background-color: black;
+	color: white;
+	padding: 10px 5px 10px 5px;
+	position: fixed;
+	width: 100%;
+}
+.set-auto-margin{
+	margin-left: auto;
+}
+.side-margin5{
+	margin: 0px 10px 0px 10px;
+}
+.left-margin-20{
+	margin-left: 3%;
+}
+.glow-red{
+
+}
+.glow-red:hover{
+	color: rgba(255, 0, 255, 1);
+}
