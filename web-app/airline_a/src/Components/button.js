@@ -3,7 +3,7 @@ import './button.css';
 const button = (props)=>{
 	//console.log("In button, Value: "+props.buttonValue)
 	let classNames = 'button';
-	if(props.selected == true){
+	if(props.selected === true){
 		classNames = `${classNames} selected`;
 	}
 	console.log("In button, classNames: "+classNames);

@@ -1,10 +1,11 @@
 const aa_port = 5005;
 const DBIpAddress = 'localhost' 
-
+const compile = require('./compile.js');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const oracledb = require('oracledb');
+var Crypto = require('crypto-js')
 
 const server = express();
 
@@ -54,6 +55,22 @@ loginFun = async (emailid, password) =>{
 server.post('/login', (req, res)=>{
 	const emailid = req.body.emailid;
 	const password = req.body.password;
+
+	compile.compileAndConnect()
+	.then(cont=>{
+		contract = cont;
+	})
+
+	.then(()=>{
+		const oneEther = 1000000000000000000; //18 zeros
+		console.log(`Hello Moto ${contract.viewBalance(web3.eth.accounts[0])/oneEther}`);
+		console.log(`contract function - ${contract.viewBalance(web3.eth.accounts[1])/oneEther}`);
+		console.log(`contract function - ${contract.viewBalance(web3.eth.accounts[2])/oneEther}`);
+		web3.eth.sendTransaction({from: web3.eth.accounts[1], to:web3.eth.accounts[2], value:1*oneEther})
+		console.log(`web3.eth function - ${web3.eth.getBalance(web3.eth.accounts[1])/oneEther}`);
+		console.log(`web3.eth function - ${web3.eth.getBalance(web3.eth.accounts[2])/oneEther}`);
+	})
+
 	loginFun(emailid, password)
 	.then((packet)=>{
 		res.send(packet);
@@ -109,6 +126,18 @@ server.post('/submitRequest',(req, res)=>{
 		const travelDate = req.body.travelDate;
 		const quote = req.body.quote;
 		const requestStatus = req.body.requestStatus;
+		const hash = '0x' + Crypto.SHA224(customerEmailid+travelSource+travelDestination).toString();
+		console.log(hash);
+		compile.compileAndConnect()
+		.then(cont=>{
+			contract = cont;
+		})
+
+		.then(()=>{
+		const oneEther = 1000000000000000000; //18 zeros
+		
+		contract.request(web3.eth.accounts[2], hash, {from:web3.eth.accounts[1]})
+		})
 
 		submitRequestFun(requester, responder, customerEmailid, seatCount, travelSource, 
 			travelDestination, travelDate, quote, requestStatus)
@@ -198,6 +227,19 @@ server.post('/respondToRequest', (req, res)=>{
 	const transactionid = req.body.notificationid;
 	const response = req.body.responseStatus;
 	console.log(`respondToRequest ${response}`);
+	const hash = '0x' + Crypto.SHA224(transactionid).toString();
+	console.log(hash);
+	compile.compileAndConnect()
+	.then(cont=>{
+		contract = cont;
+	})
+
+	.then(()=>{
+	const halfEther = 500000000000000000; //18 zeros
+	
+	contract.response(web3.eth.accounts[2], hash, halfEther, {from:web3.eth.accounts[1]})
+	contract.settlePayment(web3.eth.accounts[1], {from:web3.eth.accounts[2]});
+	})
 
 	respondToRequest(transactionid, response)
 	.then(packet=>{

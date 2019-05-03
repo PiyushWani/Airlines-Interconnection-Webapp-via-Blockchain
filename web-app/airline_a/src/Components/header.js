@@ -5,10 +5,10 @@ const header = (props) => {
 
 	let requestChangeClicked = false;
 	let notificationsClicked = false;
-	if(props.currentSelection == 'REQUEST'){
+	if(props.currentSelection === 'REQUEST'){
 		requestChangeClicked = true;
 	}
-	else if(props.currentSelection == 'NOTIFICATIONS'){
+	else if(props.currentSelection === 'NOTIFICATIONS'){
 		notificationsClicked = true;
 	}
 	console.log('requestChangeClicked: '+requestChangeClicked);

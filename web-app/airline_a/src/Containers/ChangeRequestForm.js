@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Button from '../Components/button.js'
-
+import web3 from '../web3';
+import token from '../token';
 import './change-request-form.css';
 
 class ChangeRequestForm extends Component{
@@ -18,8 +19,15 @@ class ChangeRequestForm extends Component{
 		}
 	}
 
-	
-	requestClicked = () =>{
+	submitRequestBC = async()=>{
+		console.log("In submitRequestBC");
+		const accounts = await web3.eth.getAccounts();
+		const balance = await token.methods.viewBalance(accounts[0]).call();
+		console.log(balance);
+		console.log(accounts[0]);
+		console.log(accounts[1]);
+	}
+	requestClicked = () =>{		
 
 		const airlineFacility = this.refs.airlineFacility.value;
 		const customerEmailid = this.refs.customerEmailid.value;
@@ -29,6 +37,8 @@ class ChangeRequestForm extends Component{
 		const travelDate = this.refs.travelDate.value;
 		const quote = this.refs.quote.value;
 		console.log(`travelDate: ${travelDate}`);
+		
+		//this.submitRequestBC();
 		fetch('http://localhost:5005/submitRequest', {
 			method: 'post',
 			headers: {'Content-Type' : 'application/json'},

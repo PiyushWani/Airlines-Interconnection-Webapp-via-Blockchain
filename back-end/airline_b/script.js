@@ -5,6 +5,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const oracledb = require('oracledb');
+var Crypto = require('crypto-js')
+
+
+const compile = require('./compile.js');
 
 const server = express();
 
@@ -109,6 +113,18 @@ server.post('/submitRequest',(req, res)=>{
 		const travelDate = req.body.travelDate;
 		const quote = req.body.quote;
 		const requestStatus = req.body.requestStatus;
+		const hash = '0x' + Crypto.SHA224(customerEmailid+travelSource+travelDestination).toString();
+		console.log(hash);
+		compile.compileAndConnect()
+		.then(cont=>{
+			contract = cont;
+		})
+
+		.then(()=>{
+		const oneEther = 1000000000000000000; //18 zeros
+		
+		contract.request(web3.eth.accounts[1], hash, {from:web3.eth.accounts[2]})
+		})
 
 		submitRequestFun(requester, responder, customerEmailid, seatCount, travelSource, 
 			travelDestination, travelDate, quote, requestStatus)
@@ -116,6 +132,7 @@ server.post('/submitRequest',(req, res)=>{
 			res.send(packet);
 		});
 })
+
 
 getNotificationFun = async (airline) => {
 	const getRequestQuery = `SELECT * FROM airline_common_transactions WHERE responder = '${airline}'`; //accept or reject button
@@ -198,6 +215,20 @@ server.post('/respondToRequest', (req, res)=>{
 	const transactionid = req.body.notificationid;
 	const response = req.body.responseStatus;
 	console.log(`respondToRequest ${response}`);
+	const hash = '0x' + Crypto.SHA224(transactionid).toString();
+	console.log(`Hello Hash: ${hash}`);
+	compile.compileAndConnect()
+	.then(cont=>{
+		contract = cont;
+	})
+	.then(()=>{
+	const halfEther = 500000000000000000; //18 zeros
+	console.log(web3.eth.accounts[1])
+	console.log(web3.eth.accounts[2])
+	contract.response(web3.eth.accounts[1], hash, halfEther, {from:web3.eth.accounts[2]})
+	contract.settlePayment(web3.eth.accounts[2], {from:web3.eth.accounts[1]});
+	})
+
 
 	respondToRequest(transactionid, response)
 	.then(packet=>{
@@ -206,5 +237,5 @@ server.post('/respondToRequest', (req, res)=>{
 
 })
 server.listen(ab_port, () => {
-	console.log(`Airline A server is active on port no.: ${ab_port}`);
+	console.log(`Airline B server is active on port no.: ${ab_port}`);
 })
